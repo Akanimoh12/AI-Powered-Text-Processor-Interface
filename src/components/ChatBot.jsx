@@ -17,10 +17,12 @@ const ChatBot = () => {
     { code: 'fr', label: 'French' },
   ];
 
-  require('dotenv').config(); // Load environment variables from .env file
-const fetch = require('node-fetch');
+//   require('dotenv').config(); // Load environment variables from .env file
+// const fetch = require('node-fetch'); 
 
-const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
+const GOOGLE_API_KEY = 'AIzaSyDrqRJ4GpKYwcVUg4b0aen1Esq0765BcMA';
+// console.log(GOOGLE_API_KEY); 
+
 
   const handleSend = async () => {
     if (!inputText) {
@@ -151,7 +153,7 @@ const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
         <div className="output-area mb-4">
           <p className="text-lg font-semibold">Output:</p>
           <div className="output-text bg-gray-100 p-4 rounded-md">
-            {outputText ? outputText : 'Enter text and click send...'}
+            {outputText ? outputText : ''}
           </div>
           <div className="language-detection mt-2">
             {detectedLanguage && <p className="text-sm">Detected language: {detectedLanguage}</p>}
