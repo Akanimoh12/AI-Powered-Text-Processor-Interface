@@ -3,7 +3,8 @@ import React, { useState } from 'react';
 const ChatBot = () => {
   const [inputText, setInputText] = useState('');
   const [outputText, setOutputText] = useState('');
-  const [language, setLanguage] = useState('');
+  const [targetLanguage, setTargetLanguage] = useState('en');
+  const [detectedLanguage, setDetectedLanguage] = useState('');
   const [error, setError] = useState('');
 
   const languages = [
@@ -15,6 +16,8 @@ const ChatBot = () => {
     { code: 'fr', label: 'French' },
   ];
 
+  const GOOGLE_API_KEY = 'AIzaSyDrqRJ4GpKYwcVUg4b0aen1Esq0765BcMA';
+
   const handleSend = async () => {
     if (!inputText) {
       setError('Please enter some text.');
@@ -22,48 +25,119 @@ const ChatBot = () => {
     }
 
     setError('');
-    setOutputText(inputText);
+    setOutputText(inputText); // Initial output is the same as input
     await detectLanguage(inputText);
   };
 
   const detectLanguage = async (text) => {
     try {
-      // Call the Language Detection API here
-      const response = await fetch('https://chrome.googleapis.com/v1/language/detect', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text }),
-      });
-      const result = await response.json();
-      setLanguage(result.language);
-    } catch (err) {
-      setError('Error detecting language.');
-    }
-  };
+      const response = await fetch(
+        `https://language.googleapis.com/v2/detect?key=${GOOGLE_API_KEY}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ q: [text] }),
+        }
+      );
 
-  const handleSummarize = async () => {
-    if (outputText.length > 150) {
-      // Call Summarizer API here
-      const response = await fetch('https://chrome.googleapis.com/v1/summarize', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: outputText }),
-      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error.message || 'Language detection failed');
+      }
+
       const result = await response.json();
-      setOutputText(result.summary);
+      if (result.data.detections && result.data.detections[0] && result.data.detections[0][0]) {
+        setDetectedLanguage(result.data.detections[0][0].language);
+      } else {
+        setDetectedLanguage("Language not detected");
+      }
+    } catch (err) {
+      setError(err.message);
+      console.error("Language detection error:", err);
     }
   };
 
   const handleTranslate = async () => {
-    if (language !== 'en') {
-      // Call Translator API here
-      const response = await fetch('https://chrome.googleapis.com/v1/translate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: outputText, targetLanguage: language }),
-      });
+    if (!detectedLanguage) {
+      setError("Please send text first to detect Language");
+      return;
+    }
+
+    if (detectedLanguage === targetLanguage) {
+      setError("Source and target languages are the same.");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `https://translation.googleapis.com/language/v2/translate?key=${GOOGLE_API_KEY}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            q: [inputText], // Use inputText for translation
+            target: targetLanguage,
+            source: detectedLanguage
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error.message || 'Translation failed');
+      }
+
       const result = await response.json();
-      setOutputText(result.translatedText);
+      setOutputText(result.data.translations[0].translatedText);
+    } catch (err) {
+      setError(err.message);
+      console.error("Translation error:", err);
+    }
+  };
+
+  // handleSummarize function
+  const handleSummarize = async () => {
+    if (outputText.length <= 150) {
+      setError("Text must be longer than 150 characters to summarize.");
+      return;
+    }
+
+    try {
+        const response = await fetch(
+          `https://us-central1-aiplatform.googleapis.com/v1/projects/YOUR_PROJECT_ID/locations/us-central1/endpoints/YOUR_ENDPOINT_ID:predict`, // Replace with your endpoint
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${YOUR_ACCESS_TOKEN}`, // Replace with your access token
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              "instances": [
+                {
+                  "content": outputText
+                }
+              ],
+              "parameters": {
+                "length_penalty": 1.0,
+                "min_length": 50,
+                "max_length": 200
+              }
+            })
+          }
+        );
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error.message || 'Summarization failed');
+        }
+
+        const result = await response.json();
+        const summary = result.predictions[0].summary; // Adjust based on your model's output structure
+        setOutputText(summary);
+
+    } catch (err) {
+      setError(err.message);
+      console.error("Summarization error:", err);
     }
   };
 
@@ -76,7 +150,7 @@ const ChatBot = () => {
             {outputText ? outputText : 'Enter text and click send...'}
           </div>
           <div className="language-detection mt-2">
-            {language && <p className="text-sm">Detected language: {language}</p>}
+            {detectedLanguage && <p className="text-sm">Detected language: {detectedLanguage}</p>}
           </div>
         </div>
 
