@@ -17,7 +17,10 @@ const ChatBot = () => {
     { code: 'fr', label: 'French' },
   ];
 
-  const GOOGLE_API_KEY = 'AIzaSyDrqRJ4GpKYwcVUg4b0aen1Esq0765BcMA';
+  require('dotenv').config(); // Load environment variables from .env file
+const fetch = require('node-fetch');
+
+const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
 
   const handleSend = async () => {
     if (!inputText) {
