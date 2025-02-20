@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 const ChatBot = () => {
-  const [inputText, setInputText] = useState('');
+  const [inputText, setInputText] = useState(''); 
   const [outputText, setOutputText] = useState('');
   const [targetLanguage, setTargetLanguage] = useState('en');
   const [detectedLanguage, setDetectedLanguage] = useState('');
@@ -201,4 +201,4 @@ const ChatBot = () => {
   );
 };
 
-export default ChatBot;
+export default ChatBot; 
