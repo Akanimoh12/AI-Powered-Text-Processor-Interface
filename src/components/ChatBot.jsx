@@ -4,6 +4,7 @@ const ChatBot = () => {
   const [inputText, setInputText] = useState(''); 
   const [outputText, setOutputText] = useState('');
   const [targetLanguage, setTargetLanguage] = useState('en');
+  //  const [language, setLanguage] = useState('en'); 
   const [detectedLanguage, setDetectedLanguage] = useState('');
   const [error, setError] = useState('');
 
@@ -175,17 +176,19 @@ const ChatBot = () => {
             >
               Summarize
             </button>
-            <select
-              className="language-select py-2 px-4 border rounded-lg"
-              onChange={(e) => setLanguage(e.target.value)}
-              value={language}
-            >
-              {languages.map((lang) => (
-                <option key={lang.code} value={lang.code}>
-                  {lang.label}
-                </option>
-              ))}
-            </select>
+
+              <select
+        className="language-select py-2 px-4 border rounded-lg"
+        onChange={(e) => setTargetLanguage(e.target.value)} // Corrected to targetLanguage
+        value={targetLanguage} // Corrected to targetLanguage
+      >
+        {languages.map((lang) => (
+          <option key={lang.code} value={lang.code}>
+            {lang.label}
+          </option>
+        ))}
+      </select>
+
             <button
               onClick={handleTranslate}
               className="btn-translate bg-yellow-500 text-white py-2 px-4 rounded-full"
